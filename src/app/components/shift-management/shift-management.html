@@ -1,0 +1,443 @@
+<div class="dashboard-container">
+  <header class="main-header">
+    <div class="brand">
+      <i class="bi bi-list menu-icon"></i>
+      <h2>Shift Pattern Management</h2>
+    </div>
+    <div class="header-right">
+      <div class="search-bar">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search by pattern name, code..." />
+      </div>
+      <div class="notification-icon">
+        <i class="bi bi-bell"></i>
+        <span class="badge">5</span>
+      </div>
+      <div class="user-profile">
+        <img src="./assets/images/profile.jpg" alt="Admin User" />
+        <div class="user-info">
+          <span class="username">Admin User</span>
+          <span class="role">Super Admin</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="sub-header">
+    <div class="breadcrumbs">
+      <span class="home">Home</span> > <span>Shift</span> >
+      <span class="active">Shift Pattern Management</span>
+    </div>
+    <button class="btn-primary" (click)="onAddShiftPattern()">
+      <i class="bi bi-plus-lg"></i> Add Shift Pattern
+      <i class="bi bi-chevron-down dropdown-icon"></i>
+    </button>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="card-animation-wrapper">
+      <div class="metric-card">
+        <div class="icon-circle purple-bg"><i class="bi bi-calendar"></i></div>
+        <div class="card-data">
+          <p class="label">Total Shift Patterns</p>
+          <h3>{{ totalPatterns }}</h3>
+          <span class="sub-label">All Patterns</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-animation-wrapper">
+      <div class="metric-card">
+        <div class="icon-circle green-bg"><i class="bi bi-shield-fill-check"></i></div>
+        <div class="card-data">
+          <p class="label">Active Shift Patterns</p>
+          <h3>{{ activePatterns }}</h3>
+          <span class="sub-label success-text"
+            ><span class="dot green"></span> 80.00% of Total</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="card-animation-wrapper">
+      <div class="metric-card">
+        <div class="icon-circle orange-bg"><i class="bi bi-pause-circle-fill"></i></div>
+        <div class="card-data">
+          <p class="label">Inactive Shift Patterns</p>
+          <h3>0{{ inactivePatterns }}</h3>
+          <span class="sub-label danger-text"
+            ><span class="dot orange"></span> 20.00% of Total</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="card-animation-wrapper">
+      <div class="metric-card">
+        <div class="icon-circle blue-bg"><i class="bi bi-people"></i></div>
+        <div class="card-data">
+          <p class="label">Total Assigned Employees</p>
+          <h3>{{ totalEmployees }}</h3>
+          <span class="sub-label"><span class="dot blue"></span> Across All Patterns</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content-layout">
+    <div class="left-column">
+      <div class="content-card">
+        <div class="table-controls">
+          <div class="entries">
+            <select [(ngModel)]="entriesPerPage">
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+            </select>
+            <span>entries per page</span>
+          </div>
+          <div class="filter-actions">
+            <button *ngIf="selectedRows.length > 0" class="btn-delete" (click)="deleteSelected()">
+              <i class="bi bi-trash"></i>
+              Delete ({{ selectedRows.length }})
+            </button>
+
+            <div class="search-input">
+              <input
+                type="text"
+                placeholder="Search pattern..."
+                [(ngModel)]="searchText"
+                (input)="onSearch()"
+              />
+
+              <i class="bi bi-search"></i>
+            </div>
+
+            <button class="btn-outline" (click)="onFilter('Active')">
+              <i class="bi bi-funnel"></i>
+              Filter
+            </button>
+
+            <button class="btn-outline">
+              <i class="bi bi-download"></i>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="custom-table">
+            <!-- <thead>
+              <tr>
+                <th>#</th>
+                <th>Pattern Code</th>
+                <th>Pattern Name</th>
+                <th>Description</th>
+                <th>Shift Timing</th>
+                <th>Working Days</th>
+                <th>Assigned Employees</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead> -->
+            <thead>
+              <tr>
+                <th>#</th>
+
+                <th>
+                  <input type="checkbox" (change)="toggleAll($event)" />
+                </th>
+
+                <th (click)="sort('code')">
+                  Pattern Code
+                  <i class="bi bi-arrow-down-up"></i>
+                </th>
+
+                <th (click)="sort('name')">
+                  Pattern Name
+                  <i class="bi bi-arrow-down-up"></i>
+                </th>
+
+                <th (click)="sort('description')">
+                  Description
+                  <i class="bi bi-arrow-down-up"></i>
+                </th>
+
+                <th>Shift Timing</th>
+
+                <th>Working Days</th>
+
+                <th (click)="sort('employees')">
+                  Assigned Employees
+                  <i class="bi bi-arrow-down-up"></i>
+                </th>
+
+                <th (click)="sort('status')">
+                  Status
+                  <i class="bi bi-arrow-down-up"></i>
+                </th>
+
+                <th>Action</th>
+              </tr>
+            </thead>
+            <!-- <tbody>
+              <tr *ngFor="let pattern of shiftPatterns; let i = index">
+                <td>{{ i + 1 }}</td>
+                <td>
+                  <strong>{{ pattern.code }}</strong>
+                </td>
+                <td class="teal-text">{{ pattern.name }}</td>
+                <td>{{ pattern.description }}</td>
+                <td>
+                  <div>{{ pattern.timing }}</div>
+                  <small class="text-muted" *ngIf="pattern.hours">({{ pattern.hours }})</small>
+                </td>
+                <td>
+                  <div class="badge-container">
+                    <span *ngFor="let day of pattern.workingDays" class="day-badge">{{ day }}</span>
+                  </div>
+                </td>
+                <td>{{ pattern.employees }}</td>
+                <td>
+                  <span class="status-pill" [ngClass]="pattern.status.toLowerCase()">
+                    {{ pattern.status }}
+                  </span>
+                </td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="btn-icon" (click)="onEdit(pattern)">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody> -->
+            <tbody>
+              <tr *ngFor="let pattern of filteredPatterns; let i = index">
+                <td>{{ i + 1 }}</td>
+
+                <td>
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(pattern.id)"
+                    (change)="toggleSelection(pattern.id)"
+                  />
+                </td>
+
+                <td>
+                  {{ pattern.code }}
+                </td>
+
+                <td>
+                  {{ pattern.name }}
+                </td>
+
+                <td>
+                  {{ pattern.description }}
+                </td>
+
+                <td>
+                  {{ pattern.timing }}
+                </td>
+
+                <td>
+                  <div class="badge-container">
+                    <span *ngFor="let day of pattern.workingDays"
+                     class="day-badge">
+                      {{ day }}
+                    </span>
+                  </div>
+                </td>
+
+                <td>
+                  {{ pattern.employees }}
+                </td>
+
+                <td>
+                  <span class="status-pill" [ngClass]="pattern.status.toLowerCase()">
+                    {{ pattern.status }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="action-buttons">
+                    <button class="btn-icon" (click)="onEdit(pattern)">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination-container">
+          <span>Showing 1 to {{ shiftPatterns.length }} of {{ shiftPatterns.length }} entries</span>
+          <div class="pagination-buttons">
+            <button class="page-btn"><i class="bi bi-chevron-double-left"></i></button>
+            <button class="page-btn"><i class="bi bi-chevron-left"></i></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn"><i class="bi bi-chevron-right"></i></button>
+            <button class="page-btn"><i class="bi bi-chevron-double-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-card current-calendar-section">
+        <div class="calendar-header">
+          <h3>Shift Pattern Calendar Preview</h3>
+          <div class="legend">
+            <span><span class="dot green"></span> GS - General Shift</span>
+            <span><span class="dot blue"></span> NS - Night Shift</span>
+            <span><span class="dot orange"></span> RS - Rotational Shift</span>
+            <span><span class="dot purple"></span> WS - Weekend Shift</span>
+            <span><span class="dot red"></span> Holiday</span>
+          </div>
+        </div>
+
+        <div class="calendar-controls">
+          <div class="month-selector">
+            <span>May 2025</span>
+            <i class="bi bi-chevron-expand"></i>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="calendar-table">
+            <thead>
+              <tr>
+                <th>Shift Type</th>
+                <th *ngFor="let day of calendarDays">{{ day.name }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>General Shift (GS)</td>
+                <td class="bg-gs">GS</td>
+                <td class="bg-gs">GS</td>
+                <td class="bg-gs">GS</td>
+                <td class="bg-gs">GS</td>
+                <td class="bg-gs">GS</td>
+                <td>-</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>Rotational Shift (RS)</td>
+                <td class="bg-rs">RS (A)</td>
+                <td class="bg-rs">RS (A)</td>
+                <td class="bg-rs">RS (B)</td>
+                <td class="bg-rs">RS (B)</td>
+                <td class="bg-rs">RS (C)</td>
+                <td class="bg-rs">RS (C)</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>Night Shift (NS)</td>
+                <td class="bg-ns">NS</td>
+                <td class="bg-ns">NS</td>
+                <td class="bg-ns">NS</td>
+                <td class="bg-ns">NS</td>
+                <td class="bg-ns">NS</td>
+                <td class="bg-ns">NS</td>
+                <td class="bg-ns">NS</td>
+              </tr>
+              <tr>
+                <td>Weekend Shift (WS)</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="bg-ws">NS</td>
+                <td class="bg-ws">NS</td>
+              </tr>
+              <tr>
+                <td>Holiday</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="bg-holiday">HOLIDAY</td>
+                <td class="bg-holiday">HOLIDAY</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-column">
+      <div class="content-card widget">
+        <h3>Shift Pattern Overview</h3>
+        <div class="chart-placeholder">
+          <div class="donut-chart-box">
+            <div class="donut-center">
+              <h2>25</h2>
+              <p>Total</p>
+            </div>
+          </div>
+          <div class="chart-labels">
+            <div class="active-label">
+              <span class="dot green"></span>
+              Active <br />
+              <strong>20 (80.00%)</strong>
+            </div>
+
+            <div class="inactive-label mt-2">
+              <span class="dot orange"></span>
+              Inactive <br />
+              <strong>5 (20.00%)</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-card widget">
+        <h3>Working Hours Distribution</h3>
+        <div class="bar-chart-mock">
+          <canvas id="workingHoursChart"></canvas>
+          <!-- <div class="bar-container">
+            <div class="bar" style="height: 10%"><span>1</span></div>
+            <span class="bar-label">4 Hrs</span>
+          </div>
+          <div class="bar-container">
+            <div class="bar highlight" style="height: 80%"><span>12</span></div>
+            <span class="bar-label">8 Hrs</span>
+          </div>
+          <div class="bar-container">
+            <div class="bar" style="height: 55%"><span>8</span></div>
+            <span class="bar-label">9 Hrs</span>
+          </div>
+          <div class="bar-container">
+            <div class="bar" style="height: 30%"><span>4</span></div>
+            <span class="bar-label">10+ Hrs</span>
+          </div> -->
+        </div>
+      </div>
+
+      <div class="content-card widget">
+        <h3>Recent Activities</h3>
+        <div class="activity-list">
+          <div class="activity-item" *ngFor="let item of activities">
+            <div class="activity-icon-box" [ngClass]="item.type">
+              <i
+                class="bi"
+                [ngClass]="{
+                  'bi-plus-circle': item.type === 'add',
+                  'bi-pencil-square': item.type === 'update',
+                  'bi-trash': item.type === 'delete',
+                }"
+              ></i>
+            </div>
+            <div class="activity-details">
+              <h4>{{ item.title }}</h4>
+              <p>{{ item.desc }}</p>
+              <small class="text-muted">{{ item.time }}</small>
+            </div>
+          </div>
+        </div>
+        <a href="javascript:void(0)" class="view-all-link">View All Activities</a>
+      </div>
+    </div>
+  </div>
+</div>
